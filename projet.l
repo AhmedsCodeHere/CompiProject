@@ -1,73 +1,55 @@
 %{
-	#include <stdio.h>
-	int nbl = 0;
+#include "PartieSyntax.tab.h" // Include the Bison header file for token definitions
+int nbl = 1; // Line number starts at 1
 %}
-
 
 %option noyywrap
 
-idf 		^(?!.*__).char?\w{0,10}(?<!_)$
-char		[a-zA-Z]
-int 		[0-9]
-type 		{"float"|"int"|"bool"}
-cst 		int+\.int
-
-/*
-%token FLOAT
-%token INT
-%token BOOL
-%token TYPE
-%token IDF
-%token INT_CONST
-%token FLT_CONST
-%token COMMA
-%token SEMICOLON
-%token EQUAL
-*/
-
-%%
-int		{printf("int"); return INT;}
-float		{printf("float"); return FLOAT;}
-bool 		{printf("bool"); return BOOL;}
-const 		{printf("const"); return CONST;}  
-type 		{printf("type"); return TYPE;}
-idf 		{printf("identifier"); return IDF}
-= 		{printf("assign"); return ASSIGN;} 
-
-, 		{printf("comma"); return COMMA;}
-; 		{printf("semicolon"); return SEMICOLON;}
-:		{print("colon"); return COLON;}
-[0-9] 		{printf("number"); return int}
-[0-9]\.[0-9] 	{printf("float number"); return float;}
-
-language	{printf("language"); return LANG;}
-function	{printf("function"); return FUNC;}
-return		{printf("return"); return RET;}
-var		{printf("variable"); return VAR;}
-begin		{printf("begin"); return START;}
-end		{printf("end"); return END;}
-if		{printf("if"); return IF;}
-while		{printf("while"); return WHILE;}
-"=="		{printf("while"); return EQUAL;}
-">"		{printf("greater than"); return GRT;}
-"<"		{printf("less than"); return LT;}
-">="		{printf("greater or equal"); return GRE;}
-"<="		{printf("less or equal"); return LE;}
-"+"		{printf("addition"); return ADD;}
-"-"		{printf("substitution"); return SUB;}
-"*"		{printf("multiply"); return MULT;}
-"/"		{printf("division"); return DIV;}
-"("		{printf("left parentheses"); return LEFT_PAR;}
-")"		{printf("right parentheses"); return RIGHT_PAR;}
-
-[ \t\n] 		// ignore whitespace 
-\n		{nbl++;}
-.		printf("erreur a la ligne%d\n", nbl);
-
 %%
 
-yywrap(){}
-int main(){
-	printf("Enter String")
-	yylex();
-}
+// Tokens for identifiers
+[A-Z][A-Za-z0-9_]{0,9}     { printf("identifier: %s\n", yytext); return IDF; }
+
+// Tokens for integer constants
+[0-9]+                     { printf("integer: %s\n", yytext); return INT_CONST; }
+
+// Tokens for floating-point constants
+[0-9]+\.[0-9]+             { printf("float: %s\n", yytext); return FLOAT_CONST; }
+
+// Keywords
+"bool"                      { printf("bool\n"); return BOOL_TYPE; }
+"int"                       { printf("int\n"); return INT_TYPE; }
+"float"                     { printf("float\n"); return FLOAT_TYPE; }
+"const"                     { printf("const\n"); return CONST; }
+"begin"                     { printf("begin\n"); return BEGIN; }
+"end"                       { printf("end\n"); return END; }
+
+// Operators and punctuation
+":="                        { printf("assign\n"); return ASSIGN; }
+","                         { printf("comma\n"); return COMMA; }
+";"                         { printf("semicolon\n"); return SEMICOLON; }
+"=="                        { printf("equal\n"); return EQUAL; }
+">"                         { printf("greater than\n"); return GT; }
+"<"                         { printf("less than\n"); return LT; }
+">="                        { printf("greater or equal\n"); return GE; }
+"<="                        { printf("less or equal\n"); return LE; }
+"+"                         { printf("addition\n"); return ADD; }
+"-"                         { printf("subtraction\n"); return SUB; }
+"*"                         { printf("multiplication\n"); return MULT; }
+"/"                         { printf("division\n"); return DIV; }
+"("                         { printf("left parenthesis\n"); return LEFT_PAR; }
+")"                         { printf("right parenthesis\n"); return RIGHT_PAR; }
+
+// Rule to ignore comments, including multi-line comments
+"{"([^}]|\n)*"}"            { /* Ignore comments */ }
+
+// Ignore whitespace
+[ \t]+                      { /* Ignore whitespace */ }
+
+// Increment line number on newlines
+\n                          { nbl++; }
+
+// Error handling for unexpected characters
+[^ \t\n]+                   { printf("Error at line %d: Unexpected character '%s'\n", nbl, yytext); }
+
+%%
